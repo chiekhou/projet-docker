@@ -1,0 +1,2 @@
+## Crée un projet symfony 
+docker exec www_docker_symfony composer create-project symfony/website-skeleton project
