@@ -12,9 +12,7 @@ locales apt-utils git libicu-dev g++ libpng-dev libxml2-dev libzip-dev libonig-d
 \
 &&  curl -sS https://getcomposer.org/installer | php -- \
 &&  mv composer.phar /usr/local/bin/composer \
-\
-&& curl -sL https://deb.nodesource.com/setup_18.x | bash \
-&& apt-get install nodejs \ 
+\ 
 &&  docker-php-ext-configure \
 intl \
 &&  docker-php-ext-install \
@@ -22,3 +20,6 @@ pdo pdo_mysql opcache intl zip calendar dom mbstring gd xsl \
 \
 &&  pecl install apcu && docker-php-ext-enable apcu
 WORKDIR /var/www/
+
+
+

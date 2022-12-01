@@ -1,7 +1,9 @@
-version: '3'
+version: '3.7'
 services:
+
   db:
     image: mysql
+    container_name: db_projet
     restart: always
     volumes:
       - db-data:/var/lib/mysql
@@ -31,20 +33,74 @@ services:
         restart: always
         networks:
             - dev
+  redis:
+    image: redis
+    volumes:
+      - ./data:/data
+    ports:
+      - 6379:6379
+
     
   www:
-    build: php
+    build: .
+    container_name: www_docker_symfony
     restart: always
-    ports:
-      - "8000:80"
     volumes:
       - ./php/vhosts:/etc/apache2/sites-enabled
-      - ./:/var/www
+      - ./:/var/www/
+    labels:
+      - "traefik.http.routers.app1.rule=Host(`symfony.traefik.me`)"
+      - "traefik.http.routers.app1-tls.tls.domains[0].main=app1.traefik.me"
+      - "traefik.http.routers.app1-tls.tls.domains[0].sans=app1-*.traefik.me"
+      - "traefik.http.routers.app1.tls=true"
     networks:
       - dev
+  
+  react-docker:
+    build: react-app
+    labels:
+      - "traefik.http.routers.app2.rule=Host(`react.traefik.me`)"
+      - "traefik.http.routers.app2-tls.tls.domains[0].main=app2.traefik.me"
+      - "traefik.http.routers.app2-tls.tls.domains[0].sans=app2-*.traefik.me"
+      - "traefik.http.routers.app2.tls=true"
+    container_name: react-docker
+    stdin_open: true
+    volumes:
+       - ./react-app:/var/www/html/app
+       - /var/www/html/app/node_modules
+    networks:
+      - dev
+  
+  traefik:
+    restart: unless-stopped
+    image: traefik:v2.6
+    container_name: traefik-docker
+    ports:
+      - "80:80"
+      - "443:443"
+    labels:
+      - "traefik.http.services.traefik.loadbalancer.server.port=8080"
+    volumes:
+        - ./traefik.yml:/etc/traefik/traefik.yml
+        - ./tls.yml:/etc/traefik/tls.yml
+        - ./config/traefik.yml:/traefik.yml
+        - ./letsencrypt/acme.json:/acme.json
+        - /var/run/docker.sock:/var/run/docker.sock
+        - certs:/etc/ssl/traefik
+    networks:
+      - dev
+
+  reverse-proxy-https-helper:
+    image: alpine
+    command: sh -c "cd /etc/ssl/traefik
+      && wget traefik.me/cert.pem -O cert.pem
+      && wget traefik.me/privkey.pem -O privkey.pem"
+    volumes:
+      - certs:/etc/ssl/traefik
 
 networks:
   dev:
 
 volumes:
   db-data:
+  certs:
