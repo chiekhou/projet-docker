@@ -1,6 +1,6 @@
 ## Crée un projet symfony 
 docker exec www_docker_symfony composer create-project symfony/website-skeleton project
 
-https://app1.traefik.me/ 
+https://symfony.traefik.me/ 
 
-https://app2.traefik.me/ 
+https://react.traefik.me/ 
